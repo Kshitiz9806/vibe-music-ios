@@ -37,3 +37,31 @@ DATABASE_URL='postgres://user:password@host:5432/database?sslmode=require'
 ```
 
 The local run script converts `postgres://` or `postgresql://` URLs to the JDBC format Spring needs, using the username and password already embedded in the URL. It does not print the URL. Keep the value quoted in `.env`, especially when it contains query parameters such as `sslmode=require`.
+
+## Deploy to Render
+
+The backend Dockerfile and Docker ignore file are in this directory. Before creating the service, commit and push `backend/Dockerfile`, `backend/.dockerignore`, and `backend/src/main/java/app/vibemusic/api/HealthController.java` to the branch Render will deploy.
+
+In Render, choose **New → Web Service**, connect the repository, and configure:
+
+- **Root Directory:** `backend`
+- **Runtime:** Docker
+- **Dockerfile Path:** `Dockerfile`
+- **Docker Context Directory:** `.`
+- **Docker Command:** leave blank
+- **Health Check Path:** `/health`
+- **Region:** nearest to the Neon database
+- **Instance Type:** Free for initial testing (free services sleep after inactivity)
+
+Add these environment variables in Render. Use the JDBC URL format for `DATABASE_URL`; the local launcher is not used inside the container.
+
+| Key | Value |
+| --- | --- |
+| `DATABASE_URL` | `jdbc:postgresql://<Neon-host>/neondb?sslmode=require` |
+| `SPRING_DATASOURCE_USERNAME` | Neon database username |
+| `SPRING_DATASOURCE_PASSWORD` | Neon database password |
+| `SPOTIFY_CLIENT_ID` | Spotify app Client ID |
+| `SPOTIFY_CLIENT_SECRET` | Spotify app Client Secret |
+| `TOKEN_ENCRYPTION_KEY` | Stable encryption key |
+
+Leave `PORT` unset; Render supplies it. After deployment, the service URL is your backend base URL. Check readiness at `https://<service>.onrender.com/health`.
