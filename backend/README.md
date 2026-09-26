@@ -30,4 +30,10 @@ Paste that output into `TOKEN_ENCRYPTION_KEY`. Keep the same key between backend
 bash backend/run-local.sh
 ```
 
-The API listens on port 8080 by default. API documentation is available at `http://localhost:8080/swagger-ui.html`. To use PostgreSQL instead of in-memory H2, set `DATABASE_URL`, `DATABASE_USERNAME`, and `DATABASE_PASSWORD` in `backend/.env`.
+The API listens on port 8080 by default. API documentation is available at `http://localhost:8080/swagger-ui.html`. To use PostgreSQL instead of in-memory H2, uncomment `DATABASE_URL` in `backend/.env` and paste the single connection URL from your provider, for example:
+
+```dotenv
+DATABASE_URL='postgres://user:password@host:5432/database?sslmode=require'
+```
+
+The local run script converts `postgres://` or `postgresql://` URLs to the JDBC format Spring needs, using the username and password already embedded in the URL. It does not print the URL. Keep the value quoted in `.env`, especially when it contains query parameters such as `sslmode=require`.
