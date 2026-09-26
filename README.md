@@ -22,6 +22,8 @@ openssl rand -base64 32
 bash backend/run-local.sh
 ```
 
+The backend uses in-memory H2 by default, so no database URL or separate database credentials are needed. To use PostgreSQL, paste your provider's single `postgres://user:password@host/database` URL into the quoted `DATABASE_URL` entry in `backend/.env`; the local run script converts it for Spring Boot. See [backend/README.md](backend/README.md) for details.
+
 The iOS setup is in [ios/README.md](ios/README.md). In brief: copy `ios/.env.example` to `ios/.env`, set your Spotify Client ID and the Mac’s Wi-Fi address, then run `bash ios/scripts/configure-local.sh` before opening the Xcode project. For a physical phone, use the Mac’s LAN IP rather than `127.0.0.1`.
 
 Never commit `.env` files or `ios/Config.local.xcconfig`.
