@@ -4,6 +4,7 @@ import SwiftUI
     @StateObject private var session: SessionStore
     @StateObject private var remote: SpotifyRemote
     @StateObject private var radio: RadioViewModel
+    @StateObject private var backend = BackendReadiness()
     private let login = SpotifyLogin()
 
     init() {
@@ -15,13 +16,19 @@ import SwiftUI
     var body: some Scene {
         WindowGroup {
             Group {
-                if session.token == nil { SignInView(login: login) { session.save($0) } }
+                if !backend.isReady {
+                    BackendStartupView(state: backend.state, retry: { Task { await backend.checkUntilReady() } })
+                }
+                else if session.token == nil { SignInView(login: login) { session.save($0) } }
                 else if radio.radioSessionID != nil { PlayerView(model: radio, remote: remote) { Task { await radio.endRadio() } } }
                 else { LandingView(model: radio, start: { Task { await radio.startRadio() } }, signOut: { Task { await session.signOut() } }) }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onOpenURL { remote.handle($0) }
-            .task { await session.restore() }
+            .task {
+                await backend.checkUntilReady()
+                await session.restore()
+            }
             .preferredColorScheme(.dark)
         }
     }

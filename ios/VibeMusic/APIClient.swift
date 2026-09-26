@@ -17,6 +17,15 @@ enum APIError: LocalizedError {
     private let base = URL(string: Bundle.main.object(forInfoDictionaryKey: "API_BASE_URL") as? String ?? "http://127.0.0.1:8080")!
     private init() {}
 
+    func checkHealth() async throws {
+        var request = URLRequest(url: makeURL("/health"), timeoutInterval: 12)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard let response = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+        guard response.statusCode == 200 else { throw APIError.http(response.statusCode, "Backend is still starting.") }
+    }
+
     func request<T: Decodable>(_ path: String, method: String = "GET", body: Encodable? = nil, token: String? = nil) async throws -> T {
         var request = URLRequest(url: makeURL(path))
         request.httpMethod = method
