@@ -27,4 +27,6 @@ Register these redirect URIs in the Spotify developer dashboard:
 
 For physical-device playback, run the backend on your Mac, keep the phone and Mac on the same Wi-Fi, allow VibeMusic local-network access, and install Spotify on the phone. The Simulator cannot connect to Spotify App Remote.
 
+At launch, VibeMusic checks `GET /health` before showing sign-in or the radio screen. It displays an animated wake-up indicator while the API and database become ready, retries for up to 90 seconds, then offers a retry button.
+
 Never commit `ios/.env` or `ios/Config.local.xcconfig`.

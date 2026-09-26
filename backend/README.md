@@ -30,7 +30,7 @@ Paste that output into `TOKEN_ENCRYPTION_KEY`. Keep the same key between backend
 bash backend/run-local.sh
 ```
 
-The API listens on port 8080 by default. API documentation is available at `http://localhost:8080/swagger-ui.html`. To use PostgreSQL instead of in-memory H2, uncomment `DATABASE_URL` in `backend/.env` and paste the single connection URL from your provider, for example:
+The API listens on port 8080 by default. `GET /health` returns `200` with `{"status":"UP"}` when the API can reach its database, or `503` while the database is unavailable. API documentation is available at `http://localhost:8080/swagger-ui.html`. To use PostgreSQL instead of in-memory H2, uncomment `DATABASE_URL` in `backend/.env` and paste the single connection URL from your provider, for example:
 
 ```dotenv
 DATABASE_URL='postgres://user:password@host:5432/database?sslmode=require'
