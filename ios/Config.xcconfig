@@ -1,0 +1,2 @@
+PRODUCT_BUNDLE_IDENTIFIER = app.vibemusic.ios
+#include? "Config.local.xcconfig"

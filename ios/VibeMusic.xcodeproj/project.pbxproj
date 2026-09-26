@@ -1,0 +1,267 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* VibeMusic/VibeMusicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000001 /* VibeMusic/VibeMusicApp.swift */; };
+		A10000000000000000000002 /* VibeMusic/Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000002 /* VibeMusic/Models.swift */; };
+		A10000000000000000000003 /* VibeMusic/SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000003 /* VibeMusic/SessionStore.swift */; };
+		A10000000000000000000004 /* VibeMusic/APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* VibeMusic/APIClient.swift */; };
+		A10000000000000000000005 /* VibeMusic/SpotifyLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000005 /* VibeMusic/SpotifyLogin.swift */; };
+		A10000000000000000000006 /* VibeMusic/SpotifyRemote.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000006 /* VibeMusic/SpotifyRemote.swift */; };
+		A10000000000000000000007 /* VibeMusic/RadioViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000007 /* VibeMusic/RadioViewModel.swift */; };
+		A10000000000000000000008 /* VibeMusic/Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* VibeMusic/Views.swift */; };
+		A10000000000000000000009 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 810000000000000000000001 /* SpotifyiOS */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B10000000000000000000001 /* VibeMusic/VibeMusicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeMusic/VibeMusicApp.swift; sourceTree = "<group>"; };
+		B10000000000000000000002 /* VibeMusic/Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeMusic/Models.swift; sourceTree = "<group>"; };
+		B10000000000000000000003 /* VibeMusic/SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeMusic/SessionStore.swift; sourceTree = "<group>"; };
+		B10000000000000000000004 /* VibeMusic/APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeMusic/APIClient.swift; sourceTree = "<group>"; };
+		B10000000000000000000005 /* VibeMusic/SpotifyLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeMusic/SpotifyLogin.swift; sourceTree = "<group>"; };
+		B10000000000000000000006 /* VibeMusic/SpotifyRemote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeMusic/SpotifyRemote.swift; sourceTree = "<group>"; };
+		B10000000000000000000007 /* VibeMusic/RadioViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeMusic/RadioViewModel.swift; sourceTree = "<group>"; };
+		B10000000000000000000008 /* VibeMusic/Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeMusic/Views.swift; sourceTree = "<group>"; };
+		B10000000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B10000000000000000000012 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		B10000000000000000000013 /* VibeMusic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VibeMusic.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D10000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000009 /* SpotifyiOS in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E10000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				E10000000000000000000002 /*  */,
+				B10000000000000000000010 /* Info.plist */,
+				B10000000000000000000012 /* Config.xcconfig */,
+				E10000000000000000000004 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E10000000000000000000002 /*  */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000001 /* VibeMusic/VibeMusicApp.swift */,
+				B10000000000000000000002 /* VibeMusic/Models.swift */,
+				B10000000000000000000003 /* VibeMusic/SessionStore.swift */,
+				B10000000000000000000004 /* VibeMusic/APIClient.swift */,
+				B10000000000000000000005 /* VibeMusic/SpotifyLogin.swift */,
+				B10000000000000000000006 /* VibeMusic/SpotifyRemote.swift */,
+				B10000000000000000000007 /* VibeMusic/RadioViewModel.swift */,
+				B10000000000000000000008 /* VibeMusic/Views.swift */,
+			);
+			name = "";
+			sourceTree = "<group>";
+		};
+		E10000000000000000000004 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000013 /* VibeMusic.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F10000000000000000000001 /* VibeMusic */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F10000000000000000000003 /* Build configuration list for PBXNativeTarget "VibeMusic" */;
+			buildPhases = (
+				D10000000000000000000002 /* Sources */,
+				D10000000000000000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VibeMusic;
+			packageProductDependencies = (
+				810000000000000000000001 /* SpotifyiOS */,
+			);
+			productName = VibeMusic;
+			productReference = B10000000000000000000013 /* VibeMusic.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F10000000000000000000002 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					F10000000000000000000001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = F10000000000000000000004 /* Build configuration list for PBXProject "VibeMusic" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = E10000000000000000000001;
+			packageReferences = (
+				910000000000000000000001 /* XCRemoteSwiftPackageReference "ios-sdk" */,
+			);
+			productRefGroup = E10000000000000000000004 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F10000000000000000000001 /* VibeMusic */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D10000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* VibeMusic/VibeMusicApp.swift in Sources */,
+				A10000000000000000000002 /* VibeMusic/Models.swift in Sources */,
+				A10000000000000000000003 /* VibeMusic/SessionStore.swift in Sources */,
+				A10000000000000000000004 /* VibeMusic/APIClient.swift in Sources */,
+				A10000000000000000000005 /* VibeMusic/SpotifyLogin.swift in Sources */,
+				A10000000000000000000006 /* VibeMusic/SpotifyRemote.swift in Sources */,
+				A10000000000000000000007 /* VibeMusic/RadioViewModel.swift in Sources */,
+				A10000000000000000000008 /* VibeMusic/Views.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		710000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B10000000000000000000012 /* Config.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 28LZW8S9R6;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "VibeMusic Radio";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.vibemusic.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		710000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B10000000000000000000012 /* Config.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 28LZW8S9R6;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "VibeMusic Radio";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.vibemusic.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		710000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		710000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F10000000000000000000003 /* Build configuration list for PBXNativeTarget "VibeMusic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				710000000000000000000001 /* Debug */,
+				710000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F10000000000000000000004 /* Build configuration list for PBXProject "VibeMusic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				710000000000000000000003 /* Debug */,
+				710000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		910000000000000000000001 /* XCRemoteSwiftPackageReference "ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/spotify/ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		810000000000000000000001 /* SpotifyiOS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 910000000000000000000001 /* XCRemoteSwiftPackageReference "ios-sdk" */;
+			productName = SpotifyiOS;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = F10000000000000000000002 /* Project object */;
+}

@@ -1,0 +1,32 @@
+server:
+  port: ${PORT:8080}
+spring:
+  application:
+    name: vibemusic-api
+  datasource:
+    url: ${DATABASE_URL:jdbc:h2:mem:vibemusic;DB_CLOSE_DELAY=-1;MODE=PostgreSQL}
+    username: ${DATABASE_USERNAME:sa}
+    password: ${DATABASE_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  h2:
+    console:
+    enabled: ${H2_CONSOLE_ENABLED:false}
+spotify:
+  client-id: ${SPOTIFY_CLIENT_ID:}
+  client-secret: ${SPOTIFY_CLIENT_SECRET:}
+  token-encryption-key: ${TOKEN_ENCRYPTION_KEY:}
+  requests-per-second: ${SPOTIFY_REQUESTS_PER_SECOND:3}
+  api-base-url: https://api.spotify.com/v1
+  accounts-base-url: https://accounts.spotify.com
+vibemusic:
+  session-lifetime: P7D
+  no-repeat-window: P30D
+  idle-session-window: PT75M
+  cleanup-interval: PT10M
+  scoring:
+    genre-weight: ${VIBEMUSIC_GENRE_WEIGHT:1.0}
+    artist-weight: ${VIBEMUSIC_ARTIST_WEIGHT:1.0}
+    album-weight: ${VIBEMUSIC_ALBUM_WEIGHT:1.0}

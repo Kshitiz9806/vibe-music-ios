@@ -1,0 +1,12 @@
+.DS_Store
+backend/target/
+ios/*.xcuserstate
+ios/xcuserdata/
+ios/DerivedData/
+
+# Local environment files and generated Xcode configuration
+.env
+.env.*
+!.env.example
+!**/.env.example
+ios/Config.local.xcconfig
