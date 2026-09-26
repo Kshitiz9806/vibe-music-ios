@@ -3,6 +3,8 @@ backend/target/
 ios/*.xcuserstate
 ios/xcuserdata/
 ios/DerivedData/
+**/xcuserdata/
+**/*.xcuserstate
 
 # Local environment files and generated Xcode configuration
 .env
