@@ -92,13 +92,31 @@ struct LandingView: View {
                         }
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Artists and albums").font(.subheadline.weight(.semibold))
-                            Picker("Search type", selection: $model.searchType) { Text("Artists").tag("artist"); Text("Albums").tag("album") }.pickerStyle(.segmented)
+                            HStack(spacing: 4) {
+                                ForEach(["artist", "album"], id: \.self) { type in
+                                    let title = type == "artist" ? "Artists" : "Albums"
+                                    Button { model.searchType = type } label: {
+                                        Text(title)
+                                            .font(.footnote.weight(.medium))
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 8)
+                                            .background(
+                                                model.searchType == type ? Color(uiColor: .secondarySystemBackground) : .clear,
+                                                in: Capsule()
+                                            )
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityAddTraits(model.searchType == type ? .isSelected : [])
+                                }
+                            }
+                            .padding(4)
+                            .background(Color(uiColor: .tertiarySystemBackground), in: Capsule())
                             TextField(model.searchType == "artist" ? "Search artists" : "Search albums", text: $model.searchText)
                                 .font(.subheadline)
                                 .textInputAutocapitalization(.never).autocorrectionDisabled().textFieldStyle(.roundedBorder)
                             ForEach(model.searchResults) { item in
                                 Button { model.add(item) } label: {
-                                    HStack(spacing: 10) { Image(systemName: model.searchType == "artist" ? "person.crop.circle" : "square.stack").font(.footnote).foregroundStyle(.green); VStack(alignment: .leading) { Text(item.name).font(.subheadline).foregroundStyle(.primary); if !item.subtitle.isEmpty { Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1) } }; Spacer(); Image(systemName: "plus.circle.fill").font(.footnote).foregroundStyle(.green) }
+                                    HStack(spacing: 10) { Image(systemName: model.searchType == "artist" ? "person.crop.circle" : "square.stack").font(.footnote).foregroundStyle(.green); VStack(alignment: .leading) { Text(item.name).font(.subheadline).foregroundStyle(.primary); if !item.subtitle.isEmpty { Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1) } }; Spacer(); Image(systemName: "plus.circle.fill").font(.system(size: 22, weight: .medium)).foregroundStyle(.green).frame(width: 44, height: 44).contentShape(Rectangle()) }
                                         .padding(.vertical, 4)
                                 }.disabled(!model.canAddSelection)
                             }
@@ -134,7 +152,12 @@ struct LandingView: View {
         .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .task { await model.loadGenres() }
         .task(id: model.searchText + model.searchType) {
-            try? await Task.sleep(nanoseconds: 300_000_000)
+            do {
+                try await Task.sleep(nanoseconds: 500_000_000)
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else { return }
             await model.search()
         }
     }

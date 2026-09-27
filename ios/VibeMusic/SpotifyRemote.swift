@@ -22,6 +22,8 @@ import SpotifyiOS
     }()
     private var lastTrackURI: String?
     private var didFinishCurrentTrack = false
+    private var progressTask: Task<Void, Never>?
+    private var lastPositionUpdate = Date()
 
     func authorizeAndPlay(_ uri: String) {
         lastTrackURI = uri
@@ -40,7 +42,13 @@ import SpotifyiOS
     }
 
     func resumeConnection() { if remote.connectionParameters.accessToken != nil && !remote.isConnected { remote.connect() } }
-    func disconnect() { if remote.isConnected { remote.disconnect() }; UIApplication.shared.isIdleTimerDisabled = false }
+    func disconnect() {
+        progressTask?.cancel()
+        progressTask = nil
+        isPlaying = false
+        if remote.isConnected { remote.disconnect() }
+        UIApplication.shared.isIdleTimerDisabled = false
+    }
     func togglePlayback() {
         guard let player = remote.playerAPI else { return }
         if isPlaying { player.pause(nil) } else { player.resume(nil) }
@@ -64,10 +72,32 @@ import SpotifyiOS
         isPlaying = !state.isPaused
         position = Double(state.playbackPosition) / 1000
         duration = Double(state.track.duration) / 1000
+        lastPositionUpdate = Date()
+        updateProgressTask()
         if isPlaying && !uri.isEmpty { onTrackStarted?(uri) }
         if !didFinishCurrentTrack && duration > 0 && position >= duration - 1.2 {
             didFinishCurrentTrack = true
             onTrackEnded?()
+        }
+    }
+
+    private func updateProgressTask() {
+        guard isPlaying else {
+            progressTask?.cancel()
+            progressTask = nil
+            return
+        }
+        guard progressTask == nil else { return }
+
+        progressTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 250_000_000)
+                guard let self, !Task.isCancelled else { return }
+                let now = Date()
+                let elapsed = now.timeIntervalSince(self.lastPositionUpdate)
+                self.lastPositionUpdate = now
+                self.position = min(self.position + elapsed, self.duration)
+            }
         }
     }
 }
