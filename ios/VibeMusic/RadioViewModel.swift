@@ -34,12 +34,21 @@ import Combine
         catch { errorMessage = error.localizedDescription }
     }
     func search() async {
-        guard let token = session.token, !searchText.trimmingCharacters(in: .whitespaces).isEmpty else { searchResults = []; return }
-        do { let response: PickerResults = try await APIClient.shared.request(searchPath, token: token); searchResults = response.items }
-        catch { errorMessage = error.localizedDescription }
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let type = searchType
+        guard let token = session.token, !query.isEmpty else { searchResults = []; return }
+        errorMessage = nil
+        do {
+            let response: PickerResults = try await APIClient.shared.request(searchPath(query: query, type: type), token: token)
+            guard !Task.isCancelled, searchText.trimmingCharacters(in: .whitespacesAndNewlines) == query, searchType == type else { return }
+            searchResults = response.items
+        } catch {
+            guard !Task.isCancelled, (error as? URLError)?.code != .cancelled else { return }
+            errorMessage = error.localizedDescription
+        }
     }
-    private var searchPath: String {
-        var c = URLComponents(); c.path = "/radio/search"; c.queryItems = [.init(name: "q", value: searchText), .init(name: "type", value: searchType)]
+    private func searchPath(query: String, type: String) -> String {
+        var c = URLComponents(); c.path = "/radio/search"; c.queryItems = [.init(name: "q", value: query), .init(name: "type", value: type)]
         return c.string ?? "/radio/search"
     }
     func toggleGenre(_ genre: String) { if selectedGenres.contains(genre) { selectedGenres.remove(genre) } else if canAddSelection { selectedGenres.insert(genre) } }
