@@ -205,7 +205,10 @@ struct PlayerView: View {
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
         .onChange(of: scenePhase) { phase in
             UIApplication.shared.isIdleTimerDisabled = phase == .active
-            if phase == .active { remote.resumeConnection() }
+            if phase == .active {
+                remote.resumeConnection()
+                Task { await model.keepBackendWarmIfRadioIsActive() }
+            }
             else { remote.suspendConnection() }
         }
     }

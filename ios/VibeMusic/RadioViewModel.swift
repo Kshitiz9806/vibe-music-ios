@@ -18,6 +18,7 @@ import Combine
     let session: SessionStore
     let remote: SpotifyRemote
     private var reservations: [String: String] = [:]
+    private var backendKeepAliveTask: Task<Void, Never>?
 
     init(session: SessionStore, remote: SpotifyRemote) {
         self.session = session; self.remote = remote
@@ -61,10 +62,11 @@ import Combine
         do {
             let radio: RadioResponse = try await APIClient.shared.request("/radio/start", method: "POST", body: parameters, token: token)
             radioSessionID = radio.radioSessionId
+            startBackendKeepAlive()
             let track = try await nextTrack()
             reservations[track.trackUri] = track.playHistoryId
             remote.authorizeAndPlay(track.trackUri)
-        } catch { errorMessage = error.localizedDescription; radioSessionID = nil }
+        } catch { errorMessage = error.localizedDescription; stopBackendKeepAlive(); radioSessionID = nil }
     }
     func playNext() async {
         guard remote.isConnected else { return }
@@ -83,6 +85,28 @@ import Combine
     }
     func endRadio() async {
         if let token = session.token, let id = radioSessionID { try? await APIClient.shared.noContent("/radio/\(id)/end", method: "POST", token: token) }
-        remote.disconnect(); radioSessionID = nil
+        stopBackendKeepAlive(); remote.disconnect(); radioSessionID = nil
+    }
+
+    func keepBackendWarmIfRadioIsActive() async {
+        guard radioSessionID != nil else { return }
+        try? await APIClient.shared.checkHealth()
+    }
+
+    private func startBackendKeepAlive() {
+        stopBackendKeepAlive()
+        backendKeepAliveTask = Task { [weak self] in
+            while !Task.isCancelled {
+                do { try await Task.sleep(nanoseconds: 10 * 60 * 1_000_000_000) }
+                catch { return }
+                guard let self, self.radioSessionID != nil, !Task.isCancelled else { return }
+                try? await APIClient.shared.checkHealth()
+            }
+        }
+    }
+
+    private func stopBackendKeepAlive() {
+        backendKeepAliveTask?.cancel()
+        backendKeepAliveTask = nil
     }
 }
