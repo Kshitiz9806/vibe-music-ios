@@ -10,6 +10,7 @@ import Combine
     @Published var searchType = "artist"
     @Published var searchResults: [PickerItem] = []
     @Published var radioSessionID: String?
+    @Published var isLoadingGenres = false
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var isPlaying = false
@@ -30,7 +31,9 @@ import Combine
     var parameters: RadioParameters { RadioParameters(genres: Array(selectedGenres).sorted(), artistIds: selectedArtists.map(\.id), albumIds: selectedAlbums.map(\.id)) }
 
     func loadGenres() async {
-        guard let token = session.token else { return }
+        guard !isLoadingGenres, let token = session.token else { return }
+        isLoadingGenres = true
+        defer { isLoadingGenres = false }
         do { let response: GenreResponse = try await APIClient.shared.request("/radio/genres", token: token); genres = response.genres }
         catch { errorMessage = error.localizedDescription }
     }

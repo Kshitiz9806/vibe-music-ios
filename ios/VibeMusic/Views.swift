@@ -89,6 +89,20 @@ struct LandingView: View {
                                     }.disabled(!selected && !model.canAddSelection)
                                 }
                             }
+                            if model.genres.isEmpty {
+                                if model.isLoadingGenres {
+                                    ProgressView("Loading genres…").font(.footnote).tint(.green)
+                                } else {
+                                    Button {
+                                        Task { await model.loadGenres() }
+                                    } label: {
+                                        Label("Genres unavailable. Tap to retry.", systemImage: "arrow.clockwise")
+                                            .font(.footnote)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
                         }
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Artists and albums").font(.subheadline.weight(.semibold))
