@@ -198,12 +198,15 @@ struct PlayerView: View {
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
+        .onAppear {
+            UIApplication.shared.isIdleTimerDisabled = true
+            remote.resumeConnection()
+        }
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
         .onChange(of: scenePhase) { phase in
             UIApplication.shared.isIdleTimerDisabled = phase == .active
             if phase == .active { remote.resumeConnection() }
-            if phase == .background { remote.disconnect() }
+            else { remote.suspendConnection() }
         }
     }
     private func time(_ value: Double) -> String { guard value.isFinite else { return "0:00" }; return String(format: "%d:%02d", Int(value) / 60, Int(value) % 60) }

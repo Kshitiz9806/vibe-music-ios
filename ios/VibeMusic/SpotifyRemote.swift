@@ -21,13 +21,29 @@ import SpotifyiOS
         return value
     }()
     private var lastTrackURI: String?
+    private var pendingPlaybackURI: String?
     private var didFinishCurrentTrack = false
     private var progressTask: Task<Void, Never>?
+    private var reconnectTask: Task<Void, Never>?
     private var lastPositionUpdate = Date()
+    private var shouldMaintainConnection = false
+    private var isApplicationActive = true
+    private var reconnectAttempt = 0
+    private let reconnectDelays: [UInt64] = [1, 2, 4, 8, 15]
 
     func authorizeAndPlay(_ uri: String) {
+        shouldMaintainConnection = true
         lastTrackURI = uri
-        remote.authorizeAndPlayURI(uri, completionHandler: { success in if !success { Task { @MainActor in self.errorMessage = "Install Spotify to start playback." } } })
+        didFinishCurrentTrack = false
+        if remote.connectionParameters.accessToken != nil {
+            play(uri)
+            return
+        }
+        remote.authorizeAndPlayURI(uri, completionHandler: { success in
+            if !success {
+                Task { @MainActor in self.errorMessage = "Install Spotify to start playback." }
+            }
+        })
     }
 
     func handle(_ url: URL) {
@@ -35,35 +51,98 @@ import SpotifyiOS
         let parameters = remote.authorizationParameters(from: url)
         if let token = parameters?[SPTAppRemoteAccessTokenKey] as? String {
             remote.connectionParameters.accessToken = token
-            if !remote.isConnected { remote.connect() }
+            shouldMaintainConnection = true
+            connectIfNeeded()
         } else if let description = parameters?[SPTAppRemoteErrorDescriptionKey] as? String {
             errorMessage = description
         }
     }
 
-    func resumeConnection() { if remote.connectionParameters.accessToken != nil && !remote.isConnected { remote.connect() } }
+    func resumeConnection() {
+        isApplicationActive = true
+        connectIfNeeded()
+    }
+
+    func suspendConnection() {
+        isApplicationActive = false
+        reconnectTask?.cancel()
+        reconnectTask = nil
+        if remote.isConnected { remote.disconnect() }
+        isConnected = false
+    }
+
     func disconnect() {
+        shouldMaintainConnection = false
+        reconnectAttempt = 0
+        reconnectTask?.cancel()
+        reconnectTask = nil
+        pendingPlaybackURI = nil
         progressTask?.cancel()
         progressTask = nil
+        isConnected = false
         isPlaying = false
         if remote.isConnected { remote.disconnect() }
         UIApplication.shared.isIdleTimerDisabled = false
     }
+
     func togglePlayback() {
-        guard let player = remote.playerAPI else { return }
+        guard isConnected, let player = remote.playerAPI else {
+            errorMessage = "Reconnecting to Spotify. Try again in a moment."
+            resumeConnection()
+            return
+        }
         if isPlaying { player.pause(nil) } else { player.resume(nil) }
     }
-    func play(_ uri: String) { lastTrackURI = uri; didFinishCurrentTrack = false; remote.playerAPI?.play(uri, callback: { _, error in if let error { Task { @MainActor in self.errorMessage = error.localizedDescription } } }) }
+
+    func play(_ uri: String) {
+        lastTrackURI = uri
+        didFinishCurrentTrack = false
+        guard remote.isConnected, let player = remote.playerAPI else {
+            pendingPlaybackURI = uri
+            connectIfNeeded()
+            return
+        }
+        pendingPlaybackURI = nil
+        player.play(uri, callback: { _, error in
+            if let error {
+                Task { @MainActor in
+                    self.errorMessage = error.localizedDescription
+                    self.scheduleReconnect()
+                }
+            }
+        })
+    }
 
     func appRemoteDidEstablishConnection(_ appRemote: SPTAppRemote) {
         isConnected = true
+        reconnectAttempt = 0
+        reconnectTask?.cancel()
+        reconnectTask = nil
+        errorMessage = nil
         appRemote.playerAPI?.delegate = self
         appRemote.playerAPI?.subscribe(toPlayerState: { _, error in
             if let error { Task { @MainActor in self.errorMessage = error.localizedDescription } }
         })
+        if let uri = pendingPlaybackURI {
+            play(uri)
+        }
     }
-    func appRemote(_ appRemote: SPTAppRemote, didDisconnectWithError error: Error?) { isConnected = false; if let error { errorMessage = error.localizedDescription } }
-    func appRemote(_ appRemote: SPTAppRemote, didFailConnectionAttemptWithError error: Error?) { isConnected = false; errorMessage = error?.localizedDescription ?? "Could not connect to Spotify." }
+    func appRemote(_ appRemote: SPTAppRemote, didDisconnectWithError error: Error?) {
+        isConnected = false
+        guard shouldMaintainConnection && isApplicationActive else { return }
+        errorMessage = "Spotify connection lost. Reconnecting…"
+        scheduleReconnect()
+    }
+
+    func appRemote(_ appRemote: SPTAppRemote, didFailConnectionAttemptWithError error: Error?) {
+        isConnected = false
+        guard shouldMaintainConnection && isApplicationActive else {
+            if let error { errorMessage = error.localizedDescription }
+            return
+        }
+        errorMessage = "Spotify connection lost. Reconnecting…"
+        scheduleReconnect()
+    }
 
     func playerStateDidChange(_ state: SPTAppRemotePlayerState) {
         let uri = state.track.uri
@@ -98,6 +177,25 @@ import SpotifyiOS
                 self.lastPositionUpdate = now
                 self.position = min(self.position + elapsed, self.duration)
             }
+        }
+    }
+
+    private func connectIfNeeded() {
+        guard shouldMaintainConnection, isApplicationActive,
+              remote.connectionParameters.accessToken != nil, !remote.isConnected else { return }
+        remote.connect()
+    }
+
+    private func scheduleReconnect() {
+        guard shouldMaintainConnection, isApplicationActive, reconnectTask == nil else { return }
+        let index = min(reconnectAttempt, reconnectDelays.count - 1)
+        let delay = reconnectDelays[index]
+        reconnectAttempt += 1
+        reconnectTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: delay * 1_000_000_000)
+            guard let self, !Task.isCancelled else { return }
+            self.reconnectTask = nil
+            self.connectIfNeeded()
         }
     }
 }
