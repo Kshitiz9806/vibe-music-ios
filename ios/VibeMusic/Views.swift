@@ -89,6 +89,20 @@ struct LandingView: View {
                                     }.disabled(!selected && !model.canAddSelection)
                                 }
                             }
+                            if model.genres.isEmpty {
+                                if model.isLoadingGenres {
+                                    ProgressView("Loading genres…").font(.footnote).tint(.green)
+                                } else {
+                                    Button {
+                                        Task { await model.loadGenres() }
+                                    } label: {
+                                        Label("Genres unavailable. Tap to retry.", systemImage: "arrow.clockwise")
+                                            .font(.footnote)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
                         }
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Artists and albums").font(.subheadline.weight(.semibold))
@@ -198,12 +212,18 @@ struct PlayerView: View {
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
+        .onAppear {
+            UIApplication.shared.isIdleTimerDisabled = true
+            remote.resumeConnection()
+        }
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
         .onChange(of: scenePhase) { phase in
             UIApplication.shared.isIdleTimerDisabled = phase == .active
-            if phase == .active { remote.resumeConnection() }
-            if phase == .background { remote.disconnect() }
+            if phase == .active {
+                remote.resumeConnection()
+                Task { await model.keepBackendWarmIfRadioIsActive() }
+            }
+            else { remote.suspendConnection() }
         }
     }
     private func time(_ value: Double) -> String { guard value.isFinite else { return "0:00" }; return String(format: "%d:%02d", Int(value) / 60, Int(value) % 60) }
