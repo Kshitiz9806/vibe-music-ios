@@ -4,7 +4,7 @@
 
 **VibeMusic** is a native iOS app that plays music from the user's own Spotify account, but hides all track metadata during playback and removes the ability to skip. Before starting a session, the user can tune what kind of music the radio pulls from using a set of weighted parameters (genre, artist, album), and a recommendation engine scores and orders candidate tracks accordingly.
 
-**Core principle:** the user picks the *shape* of the session up front, then surrenders control — no track names, no skipping, only pause/restart.
+**Core principle:** the user picks the *shape* of the session up front, then surrenders control — no track names, no skipping, only pause, restart, or end.
 
 ---
 
@@ -12,6 +12,7 @@
 
 - **Client:** Native iOS app (Swift), using Spotify's **iOS App Remote SDK** for playback control (requires the Spotify app installed; audio is played by the Spotify app itself, your app only sends commands and receives player state).
 - **Backend:** Java Spring Boot, exposing a REST API the iOS app talks to. Owns auth, session state, recommendation scoring, and play history.
+- **Live Activity:** An ActivityKit/WidgetKit extension presents the radio state on the Lock Screen and Dynamic Island without exposing track metadata.
 - **Database:** Postgres (SQLite acceptable for local dev).
 - **External API:** Spotify Web API. This app currently uses `/search`, `/me/top/tracks`, `/me/tracks` (saved tracks), `/artists/{id}`, and `/albums/{id}/tracks`. The genre picker is a curated server-side list: Spotify marks artist genre metadata as deprecated and it may be empty. Genre-seeded candidates are generated with Spotify search queries such as `genre:pop`; the app does not call Spotify's recommendation or genre-seed endpoints.
 
@@ -95,11 +96,13 @@ All parameters are optional; unselected ones simply don't contribute to the scor
   - Lyrics
 - Retains:
   - Play/pause
-  - Progress bar (time elapsed/remaining is fine — it's not identifying info)
-  - Volume control (optional, if not already OS-level)
-  - Big, obvious **"Restart Radio"** action — ends the current session and returns to the landing page/parameter picker to start a new one with different params.
+  - Progress bar and elapsed/remaining time
+  - **Restart Radio** — pauses current playback, ends the current backend session, and starts a fresh session with the same selected filters.
+  - **End Radio** — pauses playback, ends the backend session and Live Activity, clears selected genres, artists, albums, and search text, then returns to the landing page.
 - **No skip control** — no next/previous button in the UI.
 - **Keep screen awake** — disable the iOS idle timer (`UIApplication.shared.isIdleTimerDisabled = true`) while the radio/player screen is active, so the device doesn't auto-lock mid-session. Re-enable it when navigating away from that screen (landing page, restart flow, backgrounding the app) to avoid draining battery unnecessarily elsewhere in the app.
+- **Live Activity:** Displays VibeMusic Radio with connecting, playing, or paused status on the Lock Screen and Dynamic Island. It omits track and artist metadata. The current mark is a green ECG heartbeat inside a black circle; use of the supplied VibeMusic logo in the extension remains unresolved.
+- **Termination cleanup:** Explicit End Radio dismisses the Live Activity immediately. Since iOS doesn't reliably call app termination handlers after a force-quit, the app reconciles and ends leftover activities on the next launch. An activity may remain visible until then.
 - **Known limitation (accepted):** this is a UI-level restriction only. The OS lock screen and Control Center will still show Spotify's own now-playing info and skip controls, since Spotify (not this app) renders those system media controls. No attempt will be made to suppress or override this — it's out of scope for v1.
 
 ---
@@ -282,6 +285,8 @@ Confirms a track actually played (vs. was fetched but skipped due to app close/n
 
 Ends the current session and atomically starts a new one with new params — same shape as `/radio/start`, but as one call so the client doesn't have to sequence two requests.
 
+The current iOS **Restart Radio** action instead calls `/end` followed by `/radio/start` so it can pause playback and end the Live Activity before creating the next session, while reusing the currently selected filters.
+
 **Request:** same body as `/radio/start`.
 **Response `201`:** same shape as `/radio/start`, with a new `radioSessionId`.
 
@@ -289,7 +294,7 @@ Ends the current session and atomically starts a new one with new params — sam
 
 ### 8.10 `POST /radio/{sessionId}/end`
 
-Explicit end without starting a new session (e.g., user backgrounds the app / logs out mid-session). Optional — the idle cleanup job would eventually catch these anyway, but calling this proactively keeps `PlayHistory` reporting cleaner.
+Explicit end without starting a new session. The iOS **End Radio** action calls this endpoint after stopping playback and immediately dismissing the Live Activity. The idle cleanup job also catches sessions that are not explicitly ended.
 
 **Response `204`**
 

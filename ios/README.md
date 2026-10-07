@@ -29,4 +29,12 @@ For physical-device playback, run the backend on your Mac, keep the phone and Ma
 
 At launch, VibeMusic checks `GET /health` before showing sign-in or the radio screen. It displays an animated wake-up indicator while the API and database become ready, retries for up to 90 seconds, then offers a retry button.
 
+## Radio player and Live Activity
+
+- Select up to five genres, artists, and albums before starting a radio session.
+- **Restart Radio** pauses current playback, ends the current backend session, and starts a fresh session with the same filters.
+- **End Radio** pauses playback, ends the backend session and Live Activity, clears the selected filters and search, and returns to the landing screen.
+- The ActivityKit extension shows only VibeMusic Radio and connecting, playing, or paused status. It does not display track or artist metadata. The current Dynamic Island and Lock Screen mark is a green heartbeat symbol on black; the supplied VibeMusic logo still needs to be resolved in the extension.
+- If iOS terminates the app while the activity is active, the app clears leftover Live Activities the next time it launches. iOS does not guarantee that an app gets a termination callback when it is force-quit, so immediate removal at that moment is not guaranteed.
+
 Never commit `ios/.env` or `ios/Config.local.xcconfig`.

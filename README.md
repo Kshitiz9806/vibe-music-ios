@@ -2,6 +2,8 @@
 
 VibeMusic is a private, single-user-oriented radio app that builds a session from Spotify search, artist top tracks, albums, and the user's listening library. The player intentionally omits track metadata and skip controls.
 
+The iOS client supports up to five genre, artist, and album filters, shows the active session in a metadata-free Live Activity on the Lock Screen and Dynamic Island, and offers separate **Restart Radio** and **End Radio** actions. End Radio stops playback, clears the filters, and returns to the home screen. The Live Activity currently uses a green heartbeat mark on black; the supplied logo still needs to be resolved in the extension.
+
 ## Repository layout
 
 - `backend/` — Spring Boot REST API and recommendation/session domain.

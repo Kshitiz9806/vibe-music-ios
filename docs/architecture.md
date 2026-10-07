@@ -16,6 +16,12 @@ The score is the equal-weight mean across each selected genre, artist, and album
 
 Fetching `/next-track` reserves a track but does not mark it played. The client confirms playback through `/mark-played`; the reservation ID ties that confirmation to the selected track. A periodic cleanup marks sessions inactive after configurable inactivity. Explicit end and restart remain available.
 
+## iOS radio and Live Activity lifecycle
+
+The iOS player keeps track metadata out of its own interface and does not provide skip controls. **Restart Radio** pauses playback, ends the current backend session, and starts another session with the selected filters. **End Radio** pauses playback, ends the backend session and Live Activity, clears selected filters and search text, and returns to the landing screen.
+
+The ActivityKit widget extension presents a metadata-free status on the Lock Screen and Dynamic Island: connecting, playing, or paused. The current icon is a green ECG heartbeat on black; the original logo asset is not yet rendering reliably inside the extension. Explicit radio end uses immediate Live Activity dismissal. If iOS terminates the app unexpectedly, VibeMusic clears leftover activities at its next launch; force-quitting does not reliably provide a termination callback for immediate cleanup.
+
 ## Data and security
 
 Spotify access and refresh tokens are encrypted at rest using AES-GCM. API session tokens are random opaque values; only SHA-256 digests are persisted. The local profile uses H2 for quick startup, with PostgreSQL as the deployment target. The iOS client validates OAuth state before forwarding the one-time code and PKCE verifier.
