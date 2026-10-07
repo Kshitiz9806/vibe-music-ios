@@ -20,8 +20,15 @@ import SwiftUI
                     BackendStartupView(state: backend.state, retry: { Task { await backend.checkUntilReady() } })
                 }
                 else if session.token == nil { SignInView(login: login) { session.save($0) } }
-                else if radio.radioSessionID != nil { PlayerView(model: radio, remote: remote) { Task { await radio.endRadio() } } }
-                else { LandingView(model: radio, start: { Task { await radio.startRadio() } }, signOut: { Task { await session.signOut() } }) }
+                else if radio.radioSessionID != nil {
+                    PlayerView(
+                        model: radio,
+                        remote: remote,
+                        restart: { Task { await radio.restartRadio() } },
+                        end: { Task { await radio.endRadio() } }
+                    )
+                }
+                else { LandingView(model: radio, start: { parameters in Task { await radio.startRadio(using: parameters) } }, signOut: { Task { await session.signOut() } }) }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onOpenURL { remote.handle($0) }

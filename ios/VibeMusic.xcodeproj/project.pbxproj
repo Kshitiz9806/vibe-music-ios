@@ -18,7 +18,38 @@
 		A10000000000000000000009 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 810000000000000000000001 /* SpotifyiOS */; };
 		A1000000000000000000000A /* VibeMusic/BackendStartup.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000A /* VibeMusic/BackendStartup.swift */; };
 		A1000000000000000000000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8793BC0F3068427000C4A966 /* Assets.xcassets */; };
+		A1000000000000000000000C /* VibeMusic/RadioLiveActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000020 /* VibeMusic/RadioLiveActivityAttributes.swift */; };
+		A1000000000000000000000D /* VibeMusic/RadioLiveActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000021 /* VibeMusic/RadioLiveActivityController.swift */; };
+		A1000000000000000000000E /* VibeMusic/RadioLiveActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000020 /* VibeMusic/RadioLiveActivityAttributes.swift */; };
+		A1000000000000000000000F /* RadioLiveActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000022 /* RadioLiveActivityWidget.swift */; };
+		A10000000000000000000010 /* VibeMusicLiveActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = B10000000000000000000023 /* VibeMusicLiveActivity.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A10000000000000000000011 /* VibeMusicLiveActivity/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000025 /* VibeMusicLiveActivity/Assets.xcassets */; };
+		A10000000000000000000012 /* VibeMusicLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000026 /* VibeMusicLogo.png */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F20000000000000000000002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F10000000000000000000002 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F20000000000000000000001;
+			remoteInfo = VibeMusicLiveActivity;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D10000000000000000000004 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A10000000000000000000010 /* VibeMusicLiveActivity.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		8793BC0F3068427000C4A966 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = VibeMusic/Assets.xcassets; sourceTree = "<group>"; };
@@ -34,6 +65,13 @@
 		B10000000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B10000000000000000000012 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		B10000000000000000000013 /* VibeMusic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VibeMusic.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10000000000000000000020 /* VibeMusic/RadioLiveActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeMusic/RadioLiveActivityAttributes.swift; sourceTree = SOURCE_ROOT; };
+		B10000000000000000000021 /* VibeMusic/RadioLiveActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeMusic/RadioLiveActivityController.swift; sourceTree = SOURCE_ROOT; };
+		B10000000000000000000022 /* RadioLiveActivityWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioLiveActivityWidget.swift; sourceTree = "<group>"; };
+		B10000000000000000000023 /* VibeMusicLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = VibeMusicLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10000000000000000000024 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B10000000000000000000025 /* VibeMusicLiveActivity/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = VibeMusicLiveActivity/Assets.xcassets; sourceTree = SOURCE_ROOT; };
+		B10000000000000000000026 /* VibeMusicLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = VibeMusicLogo.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,6 +83,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D10000000000000000000006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -53,6 +98,7 @@
 			children = (
 				8793BC0F3068427000C4A966 /* Assets.xcassets */,
 				E10000000000000000000002,
+				E20000000000000000000001 /* VibeMusicLiveActivity */,
 				B10000000000000000000010 /* Info.plist */,
 				B10000000000000000000012 /* Config.xcconfig */,
 				E10000000000000000000004 /* Products */,
@@ -71,6 +117,8 @@
 				B10000000000000000000007 /* VibeMusic/RadioViewModel.swift */,
 				B10000000000000000000008 /* VibeMusic/Views.swift */,
 				B1000000000000000000000A /* VibeMusic/BackendStartup.swift */,
+				B10000000000000000000020 /* VibeMusic/RadioLiveActivityAttributes.swift */,
+				B10000000000000000000021 /* VibeMusic/RadioLiveActivityController.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -78,8 +126,20 @@
 			isa = PBXGroup;
 			children = (
 				B10000000000000000000013 /* VibeMusic.app */,
+				B10000000000000000000023 /* VibeMusicLiveActivity.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E20000000000000000000001 /* VibeMusicLiveActivity */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000022 /* RadioLiveActivityWidget.swift */,
+				B10000000000000000000024 /* Info.plist */,
+				B10000000000000000000025 /* VibeMusicLiveActivity/Assets.xcassets */,
+				B10000000000000000000026 /* VibeMusicLogo.png */,
+			);
+			path = VibeMusicLiveActivity;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -92,10 +152,12 @@
 				D10000000000000000000002 /* Sources */,
 				D10000000000000000000001 /* Frameworks */,
 				D10000000000000000000003 /* Resources */,
+				D10000000000000000000004 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				F20000000000000000000004 /* PBXTargetDependency */,
 			);
 			name = VibeMusic;
 			packageProductDependencies = (
@@ -104,6 +166,23 @@
 			productName = VibeMusic;
 			productReference = B10000000000000000000013 /* VibeMusic.app */;
 			productType = "com.apple.product-type.application";
+		};
+		F20000000000000000000001 /* VibeMusicLiveActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F20000000000000000000003 /* Build configuration list for PBXNativeTarget "VibeMusicLiveActivity" */;
+			buildPhases = (
+				D10000000000000000000005 /* Sources */,
+				D10000000000000000000006 /* Frameworks */,
+				D10000000000000000000007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VibeMusicLiveActivity;
+			productName = VibeMusicLiveActivity;
+			productReference = B10000000000000000000023 /* VibeMusicLiveActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -116,6 +195,10 @@
 				TargetAttributes = {
 					F10000000000000000000001 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					F20000000000000000000001 = {
+						CreatedOnToolsVersion = 16.0;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -136,6 +219,7 @@
 			projectRoot = "";
 			targets = (
 				F10000000000000000000001 /* VibeMusic */,
+				F20000000000000000000001 /* VibeMusicLiveActivity */,
 			);
 		};
 /* End PBXProject section */
@@ -146,6 +230,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000000000000000000000B /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D10000000000000000000007 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000011 /* VibeMusicLiveActivity/Assets.xcassets in Resources */,
+				A10000000000000000000012 /* VibeMusicLogo.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -165,10 +258,29 @@
 				A10000000000000000000007 /* VibeMusic/RadioViewModel.swift in Sources */,
 				A10000000000000000000008 /* VibeMusic/Views.swift in Sources */,
 				A1000000000000000000000A /* VibeMusic/BackendStartup.swift in Sources */,
+				A1000000000000000000000C /* VibeMusic/RadioLiveActivityAttributes.swift in Sources */,
+				A1000000000000000000000D /* VibeMusic/RadioLiveActivityController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D10000000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000000000000000000E /* VibeMusic/RadioLiveActivityAttributes.swift in Sources */,
+				A1000000000000000000000F /* RadioLiveActivityWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F20000000000000000000004 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F20000000000000000000001 /* VibeMusicLiveActivity */;
+			targetProxy = F20000000000000000000002 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		710000000000000000000001 /* Debug */ = {
@@ -245,6 +357,56 @@
 			};
 			name = Release;
 		};
+		720000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = VibeMusic/Assets.xcassets;
+				DEVELOPMENT_TEAM = 28LZW8S9R6;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = VibeMusicLiveActivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.vibemusic.ios.LiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		720000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = VibeMusic/Assets.xcassets;
+				DEVELOPMENT_TEAM = 28LZW8S9R6;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = VibeMusicLiveActivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.vibemusic.ios.LiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -262,6 +424,15 @@
 			buildConfigurations = (
 				710000000000000000000003 /* Debug */,
 				710000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F20000000000000000000003 /* Build configuration list for PBXNativeTarget "VibeMusicLiveActivity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				720000000000000000000001 /* Debug */,
+				720000000000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

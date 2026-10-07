@@ -43,6 +43,13 @@ struct BackendStartupView: View {
 
     var body: some View {
         VStack(spacing: 18) {
+            Image("VibeMusicLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 72, height: 72)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .accessibilityHidden(true)
+
             AnimatedWaveform()
                 .frame(width: 34, height: 24)
                 .accessibilityHidden(true)
