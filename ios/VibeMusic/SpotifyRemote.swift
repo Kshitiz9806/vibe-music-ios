@@ -11,6 +11,7 @@ import SpotifyiOS
     @Published private(set) var errorMessage: String?
     var onTrackStarted: ((String) -> Void)?
     var onTrackEnded: (() -> Void)?
+    var onPlaybackChanged: ((Bool) -> Void)?
 
     private let clientID = Bundle.main.object(forInfoDictionaryKey: "SPOTIFY_CLIENT_ID") as? String ?? ""
     private let redirectURL = URL(string: Bundle.main.object(forInfoDictionaryKey: "APP_REMOTE_REDIRECT_URI") as? String ?? "app.vibemusic.ios://spotify-login-callback")!
@@ -85,6 +86,17 @@ import SpotifyiOS
         UIApplication.shared.isIdleTimerDisabled = false
     }
 
+    func stopPlayback() async {
+        guard remote.isConnected, let player = remote.playerAPI else {
+            disconnect()
+            return
+        }
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            player.pause { _, _ in continuation.resume() }
+        }
+        disconnect()
+    }
+
     func togglePlayback() {
         guard isConnected, let player = remote.playerAPI else {
             errorMessage = "Reconnecting to Spotify. Try again in a moment."
@@ -149,6 +161,7 @@ import SpotifyiOS
         let changed = uri != lastTrackURI
         if changed { lastTrackURI = uri; didFinishCurrentTrack = false }
         isPlaying = !state.isPaused
+        onPlaybackChanged?(isPlaying)
         position = Double(state.playbackPosition) / 1000
         duration = Double(state.track.duration) / 1000
         lastPositionUpdate = Date()

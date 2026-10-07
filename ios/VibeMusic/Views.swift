@@ -36,9 +36,16 @@ struct SignInView: View {
 
 struct LandingView: View {
     @ObservedObject var model: RadioViewModel
-    let start: () -> Void
+    let start: (RadioParameters) -> Void
     let signOut: () -> Void
-    private let columns = [GridItem(.adaptive(minimum: 112), spacing: 8)]
+    @State private var addedMessage: String?
+    @State private var addedMessageToken = UUID()
+    @FocusState private var isSearchFocused: Bool
+    private var genreRows: [[String]] {
+        (0..<3).map { row in
+            model.genres.enumerated().compactMap { $0.offset % 3 == row ? $0.element : nil }
+        }
+    }
     private var selectedItems: [SelectedChip] {
         let genres = model.selectedGenres.sorted().map { SelectedChip(id: $0, title: $0) }
         let artists = model.selectedArtists.map { SelectedChip(id: $0.id, title: $0.name) }
@@ -59,7 +66,7 @@ struct LandingView: View {
         VStack(spacing: 0) {
             HStack {
                 Text("VIBEMUSIC")
-                    .font(.caption.weight(.bold))
+                    .font(.subheadline.weight(.bold))
                     .tracking(2)
                 Spacer()
                 Button("Sign out", action: signOut)
@@ -68,102 +75,172 @@ struct LandingView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
 
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Your filters").font(.subheadline.weight(.semibold))
+                    Spacer()
+                    Text("\(model.selectionCount) / 5")
+                        .font(.footnote.monospacedDigit())
+                        .foregroundStyle(model.selectionCount == 5 ? .orange : .secondary)
+                }
+                if selectedItems.isEmpty {
+                    Text("Choose up to five genres, artists, or albums.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    FlowChips(items: selectedItems, remove: removeSelection)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+                if let addedMessage {
+                    Label(addedMessage, systemImage: "checkmark.circle.fill")
+                        .font(.footnote.weight(.medium)).foregroundStyle(.green)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(.ultraThinMaterial)
+
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("Set your direction").font(.title2.bold())
-                            Text("Pick up to five ingredients. The radio handles the rest.").font(.footnote).foregroundStyle(.secondary)
-                        }
-                        HStack { Text("Selections").font(.subheadline.weight(.semibold)); Spacer(); Text("\(model.selectionCount) / 5").font(.footnote.monospacedDigit()).foregroundStyle(model.selectionCount == 5 ? .orange : .secondary) }
-                        if !model.selectedGenres.isEmpty || !model.selectedArtists.isEmpty || !model.selectedAlbums.isEmpty {
-                            FlowChips(items: selectedItems, remove: removeSelection)
-                        }
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Genres").font(.subheadline.weight(.semibold))
-                            LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
-                                ForEach(model.genres, id: \.self) { genre in
-                                    let selected = model.selectedGenres.contains(genre)
-                                    Button { model.toggleGenre(genre) } label: {
-                                        Text(genre.capitalized).font(.footnote).lineLimit(1).frame(maxWidth: .infinity).padding(.vertical, 8).padding(.horizontal, 10)
-                                            .foregroundColor(selected ? .black : Color.primary).background(selected ? Color.green : Color(uiColor: .secondarySystemBackground), in: Capsule())
-                                    }.disabled(!selected && !model.canAddSelection)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Set your direction").font(.title2.bold())
+                        Text("Pick up to five filters. The radio handles the rest.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+
+                    VStack(alignment: .leading, spacing: 9) {
+                        Text("Genres").font(.subheadline.weight(.semibold))
+                        if model.genres.isEmpty {
+                            if model.isLoadingGenres {
+                                ProgressView("Loading genres…").font(.footnote).tint(.green)
+                            } else {
+                                Button { Task { await model.loadGenres() } } label: {
+                                    Label("Genres unavailable. Tap to retry.", systemImage: "arrow.clockwise")
+                                        .font(.footnote).foregroundStyle(.secondary)
                                 }
+                                .buttonStyle(.plain)
                             }
-                            if model.genres.isEmpty {
-                                if model.isLoadingGenres {
-                                    ProgressView("Loading genres…").font(.footnote).tint(.green)
-                                } else {
-                                    Button {
-                                        Task { await model.loadGenres() }
-                                    } label: {
-                                        Label("Genres unavailable. Tap to retry.", systemImage: "arrow.clockwise")
-                                            .font(.footnote)
-                                            .foregroundStyle(.secondary)
+                        } else {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    ForEach(Array(genreRows.enumerated()), id: \.offset) { row in
+                                        HStack(spacing: 8) {
+                                            ForEach(row.element, id: \.self) { genre in
+                                                let selected = model.selectedGenres.contains(genre)
+                                                Button {
+                                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.72)) {
+                                                        model.toggleGenre(genre)
+                                                    }
+                                                    if !selected && model.selectedGenres.contains(genre) { showAdded("\(genre.capitalized) added") }
+                                                } label: {
+                                                    HStack(spacing: 5) {
+                                                        if selected { Image(systemName: "checkmark").font(.caption2.weight(.bold)) }
+                                                        Text(genre.capitalized).font(.footnote).lineLimit(1)
+                                                    }
+                                                    .fixedSize()
+                                                    .padding(.horizontal, 11).padding(.vertical, 7)
+                                                    .foregroundStyle(selected ? Color.black : Color.primary)
+                                                    .background(selected ? Color.green : Color(uiColor: .secondarySystemBackground), in: Capsule())
+                                                }
+                                                .buttonStyle(.plain)
+                                                .disabled(!selected && !model.canAddSelection)
+                                            }
+                                        }
                                     }
-                                    .buttonStyle(.plain)
                                 }
                             }
+                            .frame(height: 118)
                         }
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Artists and albums").font(.subheadline.weight(.semibold))
-                            HStack(spacing: 4) {
-                                ForEach(["artist", "album"], id: \.self) { type in
-                                    let title = type == "artist" ? "Artists" : "Albums"
-                                    Button { model.searchType = type } label: {
-                                        Text(title)
-                                            .font(.footnote.weight(.medium))
-                                            .frame(maxWidth: .infinity)
-                                            .padding(.vertical, 8)
-                                            .background(
-                                                model.searchType == type ? Color(uiColor: .secondarySystemBackground) : .clear,
-                                                in: Capsule()
-                                            )
-                                    }
-                                    .buttonStyle(.plain)
-                                    .accessibilityAddTraits(model.searchType == type ? .isSelected : [])
-                                }
+                    }
+
+                    VStack(alignment: .leading, spacing: 9) {
+                        HStack {
+                            Text("Find music").font(.subheadline.weight(.semibold))
+                            Spacer()
+                            Picker("Search by", selection: $model.searchType) {
+                                Text("Artist").tag("artist")
+                                Text("Album").tag("album")
                             }
-                            .padding(4)
-                            .background(Color(uiColor: .tertiarySystemBackground), in: Capsule())
+                            .pickerStyle(.menu)
+                            .tint(.green)
+                        }
+                        HStack(spacing: 9) {
+                            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
                             TextField(model.searchType == "artist" ? "Search artists" : "Search albums", text: $model.searchText)
                                 .font(.subheadline)
-                                .textInputAutocapitalization(.never).autocorrectionDisabled().textFieldStyle(.roundedBorder)
-                            ForEach(model.searchResults) { item in
-                                Button { model.add(item) } label: {
-                                    HStack(spacing: 10) { Image(systemName: model.searchType == "artist" ? "person.crop.circle" : "square.stack").font(.footnote).foregroundStyle(.green); VStack(alignment: .leading) { Text(item.name).font(.subheadline).foregroundStyle(.primary); if !item.subtitle.isEmpty { Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1) } }; Spacer(); Image(systemName: "plus.circle.fill").font(.system(size: 22, weight: .medium)).foregroundStyle(.green).frame(width: 44, height: 44).contentShape(Rectangle()) }
-                                        .padding(.vertical, 4)
-                                }.disabled(!model.canAddSelection)
-                            }
+                                .textInputAutocapitalization(.never).autocorrectionDisabled()
+                                .focused($isSearchFocused)
+                                .submitLabel(.search)
                         }
-                        if let error = model.errorMessage { Text(error).font(.footnote).foregroundStyle(.red) }
-                        Text("With no selections, VibeMusic uses your top tracks and saved music.").font(.caption).foregroundStyle(.secondary)
+                        .padding(.horizontal, 12).padding(.vertical, 10)
+                        .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+
+                        ForEach(model.searchResults) { item in
+                            let type = model.searchType
+                            let selected = model.isSelected(item, type: type)
+                            Button {
+                                if model.add(item, type: type) { showAdded("\(item.name) added") }
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Image(systemName: type == "artist" ? "person.crop.circle" : "square.stack")
+                                        .font(.body).foregroundStyle(.green)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(item.name).font(.subheadline).foregroundStyle(.primary)
+                                        if !item.subtitle.isEmpty {
+                                            Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                                        }
+                                    }
+                                    Spacer()
+                                    Image(systemName: selected ? "checkmark.circle.fill" : "plus.circle.fill")
+                                        .font(.title3).foregroundStyle(selected ? Color.green : Color.secondary)
+                                }
+                                .padding(.vertical, 7)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(selected || !model.canAddSelection)
+                        }
                     }
+
+                    if let error = model.errorMessage { Text(error).font(.footnote).foregroundStyle(.red) }
+                    Text("With no selections, VibeMusic uses your top tracks and saved music.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
             .scrollDismissesKeyboard(.interactively)
 
-            Button(action: start) {
-                HStack {
-                    if model.isLoading { ProgressView().tint(.black) }
-                    Text(model.isLoading ? "Starting…" : "Start Vibe Radio")
-                    Spacer()
-                    Image(systemName: "arrow.right")
+            if !isSearchFocused {
+                Button { start(model.parameters) } label: {
+                    HStack {
+                        if model.isLoading { ProgressView().tint(.black) }
+                        Text(model.isLoading ? "Starting…" : "Start Vibe Radio")
+                        Spacer()
+                        Image(systemName: "arrow.right")
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.vertical, 13)
+                    .padding(.horizontal, 16)
+                    .foregroundStyle(.black)
+                    .background(Color.green, in: RoundedRectangle(cornerRadius: 14))
                 }
-                .font(.subheadline.weight(.semibold))
-                .padding(.vertical, 13)
+                .disabled(model.isLoading)
                 .padding(.horizontal, 16)
-                .foregroundStyle(.black)
-                .background(Color.green, in: RoundedRectangle(cornerRadius: 14))
+                .padding(.top, 8)
+                .padding(.bottom, 8)
+                .background(Color(uiColor: .systemBackground).opacity(0.97))
             }
-            .disabled(model.isLoading)
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-            .padding(.bottom, 8)
-            .background(Color(uiColor: .systemBackground).opacity(0.97))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(uiColor: .systemBackground).ignoresSafeArea())
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { isSearchFocused = false }
+            }
+        }
         .task { await model.loadGenres() }
         .task(id: model.searchText + model.searchType) {
             do {
@@ -175,12 +252,26 @@ struct LandingView: View {
             await model.search()
         }
     }
+
+    private func showAdded(_ message: String) {
+        let token = UUID()
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.78)) {
+            addedMessage = message
+            addedMessageToken = token
+        }
+        Task {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            guard addedMessageToken == token else { return }
+            withAnimation(.easeOut(duration: 0.2)) { addedMessage = nil }
+        }
+    }
 }
 
 struct PlayerView: View {
     @ObservedObject var model: RadioViewModel
     @ObservedObject var remote: SpotifyRemote
     let restart: () -> Void
+    let end: () -> Void
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         GeometryReader { geometry in
@@ -201,11 +292,36 @@ struct PlayerView: View {
                 }.padding(.top, 8)
                 Button { remote.togglePlayback() } label: {
                     Image(systemName: remote.isPlaying ? "pause.fill" : "play.fill").font(.system(size: 20, weight: .bold)).foregroundStyle(.black).frame(width: 56, height: 56).background(.green, in: Circle())
-                }.accessibilityLabel(remote.isPlaying ? "Pause" : "Play")
+                }
+                .accessibilityLabel(remote.isPlaying ? "Pause" : "Play")
+                .disabled(model.isLoading)
                 Spacer(minLength: 8)
                 if let error = remote.errorMessage ?? model.errorMessage { Text(error).font(.footnote).foregroundStyle(.red).multilineTextAlignment(.center) }
-                Button(action: restart) {
-                    Label("Restart Radio", systemImage: "arrow.counterclockwise").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity).padding(.vertical, 13).background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 13))
+                HStack(spacing: 10) {
+                    Button(action: restart) {
+                        Label(model.isLoading ? "Restarting…" : "Restart Radio", systemImage: "arrow.counterclockwise")
+                            .font(.footnote.weight(.semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 13)
+                            .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 13))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(model.isLoading)
+
+                    Button(action: end) {
+                        Label("End Radio", systemImage: "stop.fill")
+                            .font(.footnote.weight(.semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 13)
+                            .foregroundStyle(.white)
+                            .background(Color.red.opacity(0.85), in: RoundedRectangle(cornerRadius: 13))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(model.isLoading)
                 }
             }
             .padding(.horizontal, 18)
@@ -235,7 +351,22 @@ private struct FlowChips: View {
     let remove: (String) -> Void
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack { ForEach(items) { item in Button { remove(item.id) } label: { Label(item.title, systemImage: "xmark.circle.fill").font(.caption).padding(.horizontal, 11).padding(.vertical, 8).foregroundStyle(.primary).background(Color(uiColor: .secondarySystemBackground), in: Capsule()) } } }
+            HStack {
+                ForEach(items) { item in
+                    Button { remove(item.id) } label: {
+                        HStack(spacing: 8) {
+                            Text(item.title).font(.caption.weight(.medium)).lineLimit(1)
+                            Image(systemName: "xmark.circle.fill").font(.system(size: 16, weight: .semibold))
+                        }
+                        .padding(.horizontal, 12).frame(minHeight: 42)
+                        .foregroundStyle(.primary)
+                        .background(Color(uiColor: .secondarySystemBackground), in: Capsule())
+                        .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Remove \(item.title)")
+                }
+            }
         }
     }
 }

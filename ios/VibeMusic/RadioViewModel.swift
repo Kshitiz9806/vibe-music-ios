@@ -7,7 +7,9 @@ import Combine
     @Published var selectedArtists: [PickerItem] = []
     @Published var selectedAlbums: [PickerItem] = []
     @Published var searchText = ""
-    @Published var searchType = "artist"
+    @Published var searchType = "artist" {
+        didSet { if oldValue != searchType { searchResults = [] } }
+    }
     @Published var searchResults: [PickerItem] = []
     @Published var radioSessionID: String?
     @Published var isLoadingGenres = false
@@ -20,11 +22,16 @@ import Combine
     let remote: SpotifyRemote
     private var reservations: [String: String] = [:]
     private var backendKeepAliveTask: Task<Void, Never>?
+    private let liveActivity = RadioLiveActivityController()
 
     init(session: SessionStore, remote: SpotifyRemote) {
         self.session = session; self.remote = remote
+        // A relaunched app has no restored radio session, so any retained
+        // Live Activity belongs to a session that is no longer active here.
+        liveActivity.endAllActivities()
         remote.onTrackStarted = { [weak self] uri in Task { await self?.markStarted(uri) } }
         remote.onTrackEnded = { [weak self] in Task { await self?.playNext() } }
+        remote.onPlaybackChanged = { [weak self] isPlaying in self?.liveActivity.update(isPlaying: isPlaying) }
     }
     var selectionCount: Int { selectedGenres.count + selectedArtists.count + selectedAlbums.count }
     var canAddSelection: Bool { selectionCount < 5 }
@@ -56,20 +63,33 @@ import Combine
         return c.string ?? "/radio/search"
     }
     func toggleGenre(_ genre: String) { if selectedGenres.contains(genre) { selectedGenres.remove(genre) } else if canAddSelection { selectedGenres.insert(genre) } }
-    func add(_ item: PickerItem) { guard canAddSelection else { return }; if searchType == "artist", !selectedArtists.contains(item) { selectedArtists.append(item) }; if searchType == "album", !selectedAlbums.contains(item) { selectedAlbums.append(item) } }
+    func isSelected(_ item: PickerItem, type: String) -> Bool {
+        type == "artist"
+            ? selectedArtists.contains(where: { $0.id == item.id })
+            : selectedAlbums.contains(where: { $0.id == item.id })
+    }
+    @discardableResult
+    func add(_ item: PickerItem, type: String) -> Bool {
+        guard !isSelected(item, type: type), canAddSelection else { return false }
+        if type == "artist" { selectedArtists.append(item) }
+        else if type == "album" { selectedAlbums.append(item) }
+        else { return false }
+        return true
+    }
     func remove(_ item: PickerItem) { selectedArtists.removeAll { $0.id == item.id }; selectedAlbums.removeAll { $0.id == item.id } }
 
-    func startRadio() async {
+    func startRadio(using parameters: RadioParameters) async {
         guard let token = session.token else { return }
         isLoading = true; defer { isLoading = false }
         do {
             let radio: RadioResponse = try await APIClient.shared.request("/radio/start", method: "POST", body: parameters, token: token)
             radioSessionID = radio.radioSessionId
             startBackendKeepAlive()
+            liveActivity.start(sessionID: radio.radioSessionId)
             let track = try await nextTrack()
             reservations[track.trackUri] = track.playHistoryId
             remote.authorizeAndPlay(track.trackUri)
-        } catch { errorMessage = error.localizedDescription; stopBackendKeepAlive(); radioSessionID = nil }
+        } catch { errorMessage = error.localizedDescription; liveActivity.end(); stopBackendKeepAlive(); radioSessionID = nil }
     }
     func playNext() async {
         guard remote.isConnected else { return }
@@ -87,8 +107,39 @@ import Combine
         catch { errorMessage = error.localizedDescription }
     }
     func endRadio() async {
-        if let token = session.token, let id = radioSessionID { try? await APIClient.shared.noContent("/radio/\(id)/end", method: "POST", token: token) }
-        stopBackendKeepAlive(); remote.disconnect(); radioSessionID = nil
+        let endingSessionID = radioSessionID
+        liveActivity.end()
+        stopBackendKeepAlive()
+        radioSessionID = nil
+        clearFilters()
+        await remote.stopPlayback()
+        if let token = session.token, let id = endingSessionID {
+            try? await APIClient.shared.noContent("/radio/\(id)/end", method: "POST", token: token)
+        }
+    }
+
+    func restartRadio() async {
+        guard !isLoading else { return }
+        let currentParameters = parameters
+        let endingSessionID = radioSessionID
+        isLoading = true
+        defer { isLoading = false }
+        liveActivity.end()
+        stopBackendKeepAlive()
+        await remote.stopPlayback()
+        if let token = session.token, let id = endingSessionID {
+            try? await APIClient.shared.noContent("/radio/\(id)/end", method: "POST", token: token)
+        }
+        await startRadio(using: currentParameters)
+    }
+
+    private func clearFilters() {
+        selectedGenres.removeAll()
+        selectedArtists.removeAll()
+        selectedAlbums.removeAll()
+        searchText = ""
+        searchResults = []
+        errorMessage = nil
     }
 
     func keepBackendWarmIfRadioIsActive() async {
