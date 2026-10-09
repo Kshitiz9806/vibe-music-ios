@@ -24,6 +24,9 @@ vibemusic:
   no-repeat-window: P30D
   idle-session-window: PT75M
   cleanup-interval: PT10M
+  web:
+    allowed-origins: ${VIBEMUSIC_WEB_ALLOWED_ORIGINS:http://127.0.0.1:5173}
+    cookie-secure: ${VIBEMUSIC_COOKIE_SECURE:true}
   scoring:
     genre-weight: ${VIBEMUSIC_GENRE_WEIGHT:1.0}
     artist-weight: ${VIBEMUSIC_ARTIST_WEIGHT:1.0}

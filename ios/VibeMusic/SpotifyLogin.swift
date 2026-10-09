@@ -18,7 +18,7 @@ import UIKit
         components.queryItems = [
             .init(name: "client_id", value: clientID), .init(name: "response_type", value: "code"),
             .init(name: "redirect_uri", value: redirectURI), .init(name: "state", value: state),
-            .init(name: "scope", value: "user-read-email user-read-private user-top-read user-library-read"),
+            .init(name: "scope", value: "user-read-email user-read-private user-top-read user-library-read streaming user-modify-playback-state"),
             .init(name: "code_challenge_method", value: "S256"), .init(name: "code_challenge", value: challenge)
         ]
         guard let url = components.url else { throw APIError.invalidResponse }
