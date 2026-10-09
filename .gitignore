@@ -1,5 +1,7 @@
 .DS_Store
 backend/target/
+**/node_modules/
+web/dist/
 ios/*.xcuserstate
 ios/xcuserdata/
 ios/DerivedData/

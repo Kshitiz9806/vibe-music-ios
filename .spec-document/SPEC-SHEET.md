@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-**VibeMusic** is a native iOS app that plays music from the user's own Spotify account, but hides all track metadata during playback and removes the ability to skip. Before starting a session, the user can tune what kind of music the radio pulls from using a set of weighted parameters (genre, artist, album), and a recommendation engine scores and orders candidate tracks accordingly.
+**VibeMusic** is an iOS and browser radio app that plays music from the user's own Spotify account. The in-app player hides track metadata and provides no skip or seek controls. Before starting a session, the user can tune what kind of music the radio pulls from using a set of weighted parameters (genre, artist, album), and a recommendation engine scores and orders candidate tracks accordingly.
 
 **Core principle:** the user picks the *shape* of the session up front, then surrenders control — no track names, no skipping, only pause, restart, or end.
 
@@ -11,6 +11,7 @@
 ## 2. Architecture
 
 - **Client:** Native iOS app (Swift), using Spotify's **iOS App Remote SDK** for playback control (requires the Spotify app installed; audio is played by the Spotify app itself, your app only sends commands and receives player state).
+- **Web client:** React + TypeScript browser app using Spotify's **Web Playback SDK** and Spotify Web API to play selected radio tracks in the browser.
 - **Backend:** Java Spring Boot, exposing a REST API the iOS app talks to. Owns auth, session state, recommendation scoring, and play history.
 - **Live Activity:** An ActivityKit/WidgetKit extension presents the radio state on the Lock Screen and Dynamic Island without exposing track metadata.
 - **Database:** Postgres (SQLite acceptable for local dev).
@@ -24,6 +25,9 @@ Spring Boot Backend
    │  Web API calls (server-side token)
    ▼
 Spotify Web API
+
+Web App (Web Playback SDK) ── REST + secure session cookie ──► Spring Boot Backend
+       └── Spotify Web Playback SDK + playback API ──────────► Spotify
 ```
 
 ---
@@ -31,9 +35,10 @@ Spotify Web API
 ## 3. Authentication
 
 - **Flow:** The iOS app performs Spotify Authorization Code with PKCE, then sends the code, redirect URI, and verifier to the backend. The backend holds the client secret; the iOS app never sees it. Spotify App Remote playback authorization is a separate flow handled by the Spotify iOS SDK.
+- **Web flow:** The browser uses Spotify Authorization Code with PKCE, including the `streaming` and `user-modify-playback-state` scopes. The backend exchanges the code, then sets a `HttpOnly`, `SameSite=Lax` VibeMusic cookie with the configured seven-day session lifetime. No separate VibeMusic username/password account is created in this phase.
 - **Session model:** After Spotify authorization, the backend issues an opaque, random VibeMusic session token to the iOS app. All authenticated API calls use this token, not the Spotify Web API token. The default session lifetime is 7 days (`vibemusic.session-lifetime`).
 - **Token storage:** Spotify access + refresh tokens stored server-side, tied to the user's session. Backend refreshes the Spotify access token transparently before it expires.
-- **Web API scopes requested:** `user-read-email`, `user-read-private`, `user-top-read`, and `user-library-read`. Spotify App Remote obtains its playback authorization separately; playback scopes are not included in the backend OAuth request.
+- **Web API scopes requested by both clients:** `user-read-email`, `user-read-private`, `user-top-read`, `user-library-read`, `streaming`, and `user-modify-playback-state`. Request the same scope set on iOS and web so a later login from either client does not replace the shared backend refresh token with a narrower grant. Spotify App Remote obtains its playback authorization separately.
 
 ### Entities
 
@@ -79,7 +84,8 @@ All parameters are optional; unselected ones simply don't contribute to the scor
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| `POST` | `/auth/spotify/callback` | Exchange Spotify auth code, create session |
+| `POST` | `/auth/spotify/callback` | Exchange Spotify auth code, create session (also sets browser session cookie) |
+| `GET` | `/auth/spotify/playback-token` | Return a non-cacheable Spotify access token to the authenticated browser player |
 | `POST` | `/radio/start` | Create a `RadioSession` with selected params |
 | `GET` | `/radio/{sessionId}/next-track` | Return next track URI (runs scoring + selection + logs to history) |
 | `POST` | `/radio/{sessionId}/mark-played` | Log a track as played |
@@ -104,6 +110,14 @@ All parameters are optional; unselected ones simply don't contribute to the scor
 - **Live Activity:** Displays VibeMusic Radio with connecting, playing, or paused status on the Lock Screen and Dynamic Island. It omits track and artist metadata. The current mark is a green ECG heartbeat inside a black circle; use of the supplied VibeMusic logo in the extension remains unresolved.
 - **Termination cleanup:** Explicit End Radio dismisses the Live Activity immediately. Since iOS doesn't reliably call app termination handlers after a force-quit, the app reconciles and ends leftover activities on the next launch. An activity may remain visible until then.
 - **Known limitation (accepted):** this is a UI-level restriction only. The OS lock screen and Control Center will still show Spotify's own now-playing info and skip controls, since Spotify (not this app) renders those system media controls. No attempt will be made to suppress or override this — it's out of scope for v1.
+
+### Browser player
+
+- Uses the VibeMusic logo and dark theme, with filter selection styled to match the iOS client.
+- The player shows VibeMusic artwork and a playing/paused/connecting state only. Do not render Spotify track names, artist names, cover art, track lists, seek/progress controls, or skip controls in the VibeMusic browser interface.
+- The only playback actions are **Play/Pause**, **Restart Radio**, and **End Radio**. Restart starts a new backend session with the same selected filters. End pauses playback, ends the backend session, clears all filters, and returns to the filter screen.
+- Disable the browser Media Session integration so the page does not add track metadata or skip actions to browser/OS media controls.
+- **Spotify policy review required:** the requested metadata-free streaming experience appears to conflict with Spotify's published rule that streaming apps show relevant metadata and cover art during playback. Resolve before public release.
 
 ---
 
@@ -166,7 +180,7 @@ The iOS app polls this endpoint every 10 minutes only while a radio session is a
 
 ### 8.2 `POST /auth/spotify/callback`
 
-Exchanges the Spotify authorization code (from the iOS app's PKCE OAuth redirect) for tokens, creates/updates the `User`, and issues a backend session. This endpoint is unauthenticated.
+Exchanges a Spotify authorization code (from the iOS or web client's PKCE OAuth redirect) for tokens, creates/updates the Spotify `User`, and issues a backend session. This endpoint is unauthenticated. For browser sign-in (a request with an `Origin` header), it sets the `VibeMusicSession` cookie as `HttpOnly`, `SameSite=Lax`, and secure in production; its lifetime matches `vibemusic.session-lifetime` (seven days by default). The browser response omits the bearer token. iOS continues to receive and use the JSON bearer token.
 
 **Request**
 ```json
@@ -177,7 +191,7 @@ Exchanges the Spotify authorization code (from the iOS app's PKCE OAuth redirect
 }
 ```
 
-**Response `200`**
+**Response `200` (iOS; browser response also sets `Set-Cookie` and omits `sessionToken`)**
 ```json
 {
   "sessionToken": "<opaque random token>",
@@ -196,22 +210,32 @@ Exchanges the Spotify authorization code (from the iOS app's PKCE OAuth redirect
 
 ### 8.3 `POST /auth/logout`
 
-Invalidates the current session token server-side.
+Invalidates the current session token server-side and expires the browser session cookie when present. Cookie-authenticated state-changing requests must include an allowed `Origin`.
 
-**Request:** empty body. The `Authorization: Bearer` header is optional; when a valid token is supplied, its session is revoked. Missing or invalid tokens are treated as a no-op.
+**Request:** empty body. A bearer token or browser session cookie may identify the session to revoke. Missing or invalid tokens are treated as a no-op. Cookie-authenticated state-changing requests require an `Origin` in the configured web allowlist.
 **Response `204`:** no content.
 
 ---
 
 ### 8.4 `GET /auth/session`
 
-Lightweight check the iOS app can call on launch to validate a stored session token before showing the landing page.
+Lightweight check used by iOS and web clients to validate their stored session (iOS bearer token or web cookie) before showing the landing page.
 
 **Response `200`**
 ```json
 { "valid": true, "user": { "id": "usr_123", "displayName": "Kshitiz" } }
 ```
 **Response `401`** if expired/invalid — client should route to login.
+
+---
+
+### 8.4.1 `GET /auth/spotify/playback-token`
+
+Requires a valid VibeMusic session. Refreshes the user's Spotify access token if needed and returns it to the authenticated browser for the Web Playback SDK. The response uses `Cache-Control: no-store`; the frontend keeps it in memory only and requests a fresh token from this endpoint when needed.
+
+**Response `200`** `{ "accessToken": "..." }`
+
+The web OAuth grant requests Spotify's `streaming` and `user-modify-playback-state` scopes in addition to the Web API data scopes. The backend never returns the Spotify refresh token.
 
 ---
 

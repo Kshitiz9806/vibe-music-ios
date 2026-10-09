@@ -6,6 +6,10 @@ The backend owns Web API credentials, refresh tokens, VibeMusic sessions, candid
 
 The iOS app uses `ASWebAuthenticationSession` with Authorization Code + PKCE for the backend Web API grant, verifies OAuth state, and posts the code, verifier, and exact redirect URI to `/auth/spotify/callback`; the backend exchanges it using its confidential client credentials. App Remote obtains its own authorization through the Spotify iOS SDK. Both grants request only scopes needed for their APIs.
 
+The web client uses Authorization Code with PKCE and the same callback endpoint. The backend returns its usual session token for iOS and also sets a seven-day `HttpOnly`, `SameSite=Lax` session cookie for the browser. The browser never reads the session cookie from JavaScript. Authenticated API calls accept either iOS bearer tokens or the web cookie; cookie-authenticated state-changing requests must include an allowed `Origin`. Both clients request the same Spotify scope set, including `streaming` and `user-modify-playback-state`, so either client can refresh the shared server-side Spotify grant without narrowing its permissions. The web client obtains a short-lived Spotify access token from `/auth/spotify/playback-token` for the Spotify Web Playback SDK and Spotify's play endpoint. Spotify refresh tokens remain encrypted on the backend.
+
+The browser radio uses up to five genre, artist, and album filters. Its player screen displays only VibeMusic artwork and playback status, with play/pause, restart, and end actions; it does not render track metadata, track lists, seek, or skip controls. Spotify's published policy currently requires streaming apps to show relevant metadata and cover art during playback, so the requested metadata-free experience needs a policy review before public release.
+
 ## Candidate generation
 
 Use only supported sources in the spec: Spotify search, artist top tracks, album tracks, top tracks, saved tracks, and artist genre tags. Do not call Recommendations, Audio Features, Audio Analysis, or genre-seed endpoints. Candidate providers are isolated behind an interface so source limits and Spotify API changes do not leak into scoring.
@@ -28,4 +32,4 @@ Spotify access and refresh tokens are encrypted at rest using AES-GCM. API sessi
 
 ## Current implementation boundary
 
-The backend API, data model, Spotify Web API adapter, recommendation core, and SwiftUI client are implemented. Spotify requires a configured developer app, bundle ID, redirect URIs, client credentials, and its SDK binary before the iOS target can be built on a machine with full Xcode.
+The backend API, data model, Spotify Web API adapter, recommendation core, SwiftUI client, and React browser client are implemented. Spotify requires a configured developer app, bundle ID, redirect URIs, client credentials, and its SDK binary before the iOS target can be built on a machine with full Xcode.
